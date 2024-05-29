@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"log"
 	"net/http"
+
 	"github.com/illiakornyk/e-commerce/services/user"
 )
 
@@ -23,7 +24,8 @@ func (s *APIServer) Run() error {
 	apiV1Mux := http.NewServeMux()
 	mux.Handle("/api/v1/", http.StripPrefix("/api/v1", apiV1Mux))
 
-	userHandler := user.NewHandler()
+	userStore := user.NewStore(s.databaseConn)
+	userHandler := user.NewHandler(userStore)
 	userHandler.RegisterRoutes(apiV1Mux)
 
 	log.Println("Starting server on port", s.listenAddress)
