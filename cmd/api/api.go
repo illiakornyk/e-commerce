@@ -24,6 +24,7 @@ func (s *APIServer) Run() error {
 	apiV1Mux := http.NewServeMux()
 	mux.Handle("/api/v1/", http.StripPrefix("/api/v1", apiV1Mux))
 
+
 	userStore := user.NewStore(s.databaseConn)
 	userHandler := user.NewHandler(userStore)
 	userHandler.RegisterRoutes(apiV1Mux)

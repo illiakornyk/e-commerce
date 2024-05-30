@@ -51,17 +51,17 @@ func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// validate payload
-
-
-
-
 
 	err = h.store.CreateUser(types.User{
 		Username: payload.Username,
 		Password: hashedPassword,
 		Email:    payload.Email,
 	})
+
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
 
 	utils.WriteJSON(w, http.StatusCreated, nil)
 

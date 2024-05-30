@@ -9,7 +9,7 @@ import (
 type UserStore interface {
 	GetUserByEmail(email string) (*User, error)
 	GetUserByID(id int) (*User, error)
-	CreateUser(u User) error
+	CreateUser(User) error
 }
 
 type User struct {
