@@ -19,11 +19,13 @@ func main() {
 		SSLMode:  config.Envs.SSLMode,
 	})
 
-	initStorage(db)
 
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	initStorage(db)
+
 
 	server := api.NewApiServerInstance(":8080", nil)
 	if err := server.Run(); err != nil {
