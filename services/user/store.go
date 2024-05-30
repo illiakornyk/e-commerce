@@ -64,6 +64,6 @@ func (s *Store) GetUserByID(id int) (*types.User, error) {
 	return nil, nil
 }
 
-func (s *Store) CreateUser(u *types.User) error {
+func (s *Store) CreateUser(u types.User) error {
 	return nil
 }
