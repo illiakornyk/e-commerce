@@ -27,10 +27,36 @@ type RegisterUserPayload struct {
 }
 
 
+type LoginUserPayload struct {
+	Password string `json:"password"`
+	Email    string `json:"email"`
+}
+
+
 func (p *RegisterUserPayload) Validate() error {
 	if p.Username == "" {
 		return errors.New("username is required")
 	}
+	if p.Password == "" {
+		return errors.New("password is required")
+	}
+	if p.Email == "" {
+		return errors.New("email is required")
+	}
+
+	// Check if email format is valid
+	matched, err := regexp.MatchString(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`, p.Email)
+	if err != nil {
+		return err
+	}
+	if !matched {
+		return errors.New("invalid email format")
+	}
+
+	return nil
+}
+
+func (p *LoginUserPayload) Validate() error {
 	if p.Password == "" {
 		return errors.New("password is required")
 	}
