@@ -1,8 +1,10 @@
 package cart
 
 import (
+	"fmt"
 	"net/http"
 
+	"github.com/illiakornyk/e-commerce/services/auth"
 	"github.com/illiakornyk/e-commerce/types"
 	"github.com/illiakornyk/e-commerce/utils"
 )
@@ -10,23 +12,30 @@ import (
 type Handler struct {
 	store      types.ProductStore
 	orderStore types.OrdersStore
+	userStore  types.UserStore
 }
 
-func NewHandler(store types.ProductStore, orderStore types.OrdersStore) *Handler {
+func NewHandler(store types.ProductStore, orderStore types.OrdersStore, userStore types.UserStore) *Handler {
 	return &Handler{
 		store: store,
 		orderStore: orderStore,
+		userStore: userStore,
 	}
 }
 
 func (h *Handler) RegisterRoutes(router *http.ServeMux) {
 
-	router.HandleFunc("/cart/checkout", h.handleCheckout)
+	router.HandleFunc("/cart/checkout", auth.WithJWTAuth(h.handleCheckout, h.userStore))
+
+
 }
 
 func (h *Handler) handleCheckout(w http.ResponseWriter, r *http.Request) {
-	// userID := auth.GetUserIDFromContext(r.Context())
-	userID := 0
+	userID := auth.GetUserIDFromContext(r.Context())
+
+	fmt.Println("userID", userID)
+
+//NOTE: the issue in userID not getting from the context
 
 	var cart types.CartCheckoutPayload
 	if err := utils.ParseJSON(r, &cart); err != nil {
