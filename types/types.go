@@ -33,7 +33,11 @@ type LoginUserPayload struct {
 }
 
 type ProductStore interface {
-	GetProducts() ([]Product, error)
+	GetProductByID(id int) (*Product, error)
+	GetProductsByID(ids []int) ([]Product, error)
+	GetProducts() ([]*Product, error)
+	CreateProduct(CreateProductPayload) error
+	UpdateProduct(Product) error
 }
 
 type Product struct {
@@ -51,6 +55,8 @@ type CreateProductPayload struct {
 	Price       float64 `json:"price"`
 	Seller      string  `json:"seller"`
 }
+
+
 
 
 func (p *RegisterUserPayload) Validate() error {
