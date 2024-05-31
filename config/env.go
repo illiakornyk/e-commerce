@@ -15,6 +15,8 @@ type Config struct {
 	Password string
 	DBName   string
 	SSLMode  string
+	JWTExpirationInSeconds int
+	JWTSecret string
 }
 
 var Envs = initConfig()
@@ -29,6 +31,8 @@ func initConfig() Config {
 		Password: getEnv("DB_PASSWORD", "postgres"),
 		DBName:   getEnv("DB_NAME", "ecommerce"),
 		SSLMode:  getEnv("DB_SSL_MODE", "disable"),
+		JWTExpirationInSeconds: parseIntEnv("JWT_EXPIRATION_IN_SECONDS", 3600*24*7),
+		JWTSecret: getEnv("JWT_SECRET", "secret"),
 	}
 }
 
