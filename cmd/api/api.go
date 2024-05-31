@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/illiakornyk/e-commerce/services/product"
 	"github.com/illiakornyk/e-commerce/services/user"
 )
 
@@ -28,6 +29,10 @@ func (s *APIServer) Run() error {
 	userStore := user.NewStore(s.databaseConn)
 	userHandler := user.NewHandler(userStore)
 	userHandler.RegisterRoutes(apiV1Mux)
+
+	productStore := product.NewStore(s.databaseConn)
+	productHandler := product.NewHandler(productStore)
+	productHandler.RegisterRoutes(apiV1Mux)
 
 	log.Println("Starting server on port", s.listenAddress)
 	return http.ListenAndServe(s.listenAddress, mux)
