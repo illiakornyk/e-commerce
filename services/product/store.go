@@ -53,7 +53,6 @@ func (s *Store) GetProductsByID(productIDs []int) ([]types.Product, error) {
     var products []types.Product
     for rows.Next() {
         var p types.Product
-        // Scan the row into the Product struct.
         err := rows.Scan(&p.ID, &p.Title, &p.Description, &p.Price, &p.Seller, &p.CreatedAt)
         if err != nil {
             return nil, err
@@ -63,6 +62,23 @@ func (s *Store) GetProductsByID(productIDs []int) ([]types.Product, error) {
 
     return products, nil
 }
+
+func (s *Store) GetProductByTitle(title string) (*types.Product, error) {
+    query := "SELECT id, title, description, price, seller, created_at FROM products WHERE title = $1"
+    row := s.db.QueryRow(query, title)
+
+    p := new(types.Product)
+    err := row.Scan(&p.ID, &p.Title, &p.Description, &p.Price, &p.Seller, &p.CreatedAt)
+    if err != nil {
+        if err == sql.ErrNoRows {
+            return nil, nil
+        }
+        return nil, err
+    }
+
+    return p, nil
+}
+
 
 
 func (s *Store) GetProducts() ([]*types.Product, error) {
