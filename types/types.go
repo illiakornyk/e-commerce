@@ -32,6 +32,26 @@ type LoginUserPayload struct {
 	Email    string `json:"email"`
 }
 
+type ProductStore interface {
+	GetProducts() ([]Product, error)
+}
+
+type Product struct {
+	ID          int     `json:"id"`
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	Price       float64 `json:"price"`
+	Seller      string  `json:"seller"`
+	CreatedAt time.Time   `json:"created_at"`
+}
+
+type CreateProductPayload struct {
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	Price       float64 `json:"price"`
+	Seller      string  `json:"seller"`
+}
+
 
 func (p *RegisterUserPayload) Validate() error {
 	if p.Username == "" {
