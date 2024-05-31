@@ -91,7 +91,12 @@ type CartItem struct {
 }
 
 type CartCheckoutPayload struct {
-	Items []CartItem `json:"items"`
+	Items []CartCheckoutItem `json:"items"`
+}
+
+type CartCheckoutItem struct {
+	ProductID int `json:"product_id"`
+	Quantity  int `json:"quantity"`
 }
 
 

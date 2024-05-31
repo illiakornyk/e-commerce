@@ -3,7 +3,7 @@ package order
 import (
 	"database/sql"
 
-	"github.com/sikozonpc/ecom/types"
+	"github.com/illiakornyk/e-commerce/types"
 )
 
 type Store struct {
