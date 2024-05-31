@@ -50,6 +50,7 @@ type Product struct {
 	Description string  `json:"description"`
 	Price       float64 `json:"price"`
 	Seller      string  `json:"seller"`
+	Quantity    int     `json:"quantity"`
 	CreatedAt time.Time   `json:"created_at"`
 }
 
@@ -58,6 +59,7 @@ type CreateProductPayload struct {
 	Description string  `json:"description"`
 	Price       float64 `json:"price"`
 	Seller      string  `json:"seller"`
+	Quantity    int     `json:"quantity"`
 }
 
 type OrdersStore interface {
@@ -81,6 +83,15 @@ type OrderItem struct {
 	Quantity int `json:"quantity"`
 	Price float64 `json:"price"`
 	CreatedAt time.Time   `json:"created_at"`
+}
+
+type CartItem struct {
+	ProductID int `json:"product_id"`
+	Quantity int `json:"quantity"`
+}
+
+type CartCheckoutPayload struct {
+	Items []CartItem `json:"items"`
 }
 
 
