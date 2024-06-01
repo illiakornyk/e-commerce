@@ -52,7 +52,7 @@ type Product struct {
 	Title       string  `json:"title"`
 	Description string  `json:"description"`
 	Price       float64 `json:"price"`
-	Seller      string  `json:"seller"`
+	SellerID    int     `json:"seller_id"`
 	Quantity    int     `json:"quantity"`
 	CreatedAt time.Time   `json:"created_at"`
 }
@@ -61,7 +61,7 @@ type CreateProductPayload struct {
 	Title       string  `json:"title"`
 	Description string  `json:"description"`
 	Price       float64 `json:"price"`
-	Seller      string  `json:"seller"`
+	SellerID    int     `json:"seller_id"`
 	Quantity    int     `json:"quantity"`
 }
 
@@ -69,7 +69,7 @@ type PatchProductPayload struct {
 	Title       *string  `json:"title"`
 	Description *string  `json:"description"`
 	Price       *float64 `json:"price"`
-	Seller      *string  `json:"seller"`
+	SellerID    int     `json:"seller_id"`
 	Quantity    *int     `json:"quantity"`
 }
 
@@ -81,10 +81,9 @@ type OrdersStore interface {
 
 type Order struct {
 	ID int `json:"id"`
-	UserID int `json:"user_id"`
+	CustomerID int `json:"customer_id"`
 	Total float64 `json:"total"`
 	Status string `json:"status"`
-	Address string `json:"address"`
 	CreatedAt time.Time   `json:"created_at"`
 }
 
@@ -104,6 +103,7 @@ type CartItem struct {
 
 type CartCheckoutPayload struct {
 	Items []CartCheckoutItem `json:"items"`
+	CustomerID int `json:"customer_id"`
 }
 
 type CartCheckoutItem struct {
@@ -220,6 +220,11 @@ func (ccp *CartCheckoutPayload) Validate() error {
 		if item.Quantity <= 0 {
 			return fmt.Errorf("invalid Quantity for ProductID %d: %d; must be positive", item.ProductID, item.Quantity)
 		}
+
+	}
+
+	if ccp.CustomerID <= 0 {
+		return fmt.Errorf("invalid CustomerID: %d; must be positive", ccp.CustomerID)
 	}
 
 	return nil
@@ -235,7 +240,7 @@ func (cpp *CreateProductPayload) Validate() error {
 	if cpp.Price <= 0 {
 		return fmt.Errorf("invalid Price: %f; must be positive", cpp.Price)
 	}
-	if cpp.Seller == "" {
+	if cpp.SellerID <= 0 {
 		return errors.New("the seller cannot be empty")
 	}
 	if cpp.Quantity < 0 {

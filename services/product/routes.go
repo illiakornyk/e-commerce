@@ -6,21 +6,26 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/illiakornyk/e-commerce/services/auth"
 	"github.com/illiakornyk/e-commerce/types"
 	"github.com/illiakornyk/e-commerce/utils"
 )
 
 type Handler struct {
 	store types.ProductStore
+
+	userStore  types.UserStore
 }
 
-func NewHandler(store types.ProductStore) *Handler {
-	return &Handler{store: store}
+func NewHandler(store types.ProductStore, userStore types.UserStore) *Handler {
+	return &Handler{store: store, userStore: userStore}
 }
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
-    mux.HandleFunc("/products", h.handleProducts)
-    mux.HandleFunc("/products/", h.handleProducts)
+
+
+    mux.HandleFunc("/products", auth.WithJWTAuth(h.handleProducts, h.userStore))
+    mux.HandleFunc("/products/", auth.WithJWTAuth(h.handleProducts, h.userStore))
 }
 
 func (h *Handler) handleProducts(w http.ResponseWriter, r *http.Request) {
@@ -114,6 +119,12 @@ func (h *Handler) handleCreateProduct(w http.ResponseWriter, r *http.Request) {
 
 	var payload types.CreateProductPayload
 	if err := utils.ParseJSON(r, &payload); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+
+	if err := payload.Validate(); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
 	}

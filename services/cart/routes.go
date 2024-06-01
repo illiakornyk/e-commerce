@@ -30,7 +30,7 @@ func (h *Handler) RegisterRoutes(router *http.ServeMux) {
 }
 
 func (h *Handler) handleCheckout(w http.ResponseWriter, r *http.Request) {
-	userID := auth.GetUserIDFromContext(r.Context())
+	// userID := auth.GetUserIDFromContext(r.Context())
 
 	var cart types.CartCheckoutPayload
 	if err := utils.ParseJSON(r, &cart); err != nil {
@@ -58,7 +58,8 @@ func (h *Handler) handleCheckout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	orderID, totalPrice, err := h.createOrder(products, cart.Items, userID)
+
+	orderID, totalPrice, err := h.createOrder(products, cart.Items, cart.CustomerID)
 	if err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return

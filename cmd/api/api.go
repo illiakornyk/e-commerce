@@ -35,7 +35,7 @@ func (s *APIServer) Run() error {
 	userHandler.RegisterRoutes(apiV1Mux)
 
 	productStore := product.NewStore(s.databaseConn)
-	productHandler := product.NewHandler(productStore)
+	productHandler := product.NewHandler(productStore, userStore)
 	productHandler.RegisterRoutes(apiV1Mux)
 
 	orderStore := order.NewStore(s.databaseConn)
@@ -44,11 +44,11 @@ func (s *APIServer) Run() error {
 	cartHandler.RegisterRoutes(apiV1Mux)
 
 	customerStore := customer.NewStore(s.databaseConn)
-	customerHandler := customer.NewHandler(customerStore)
+	customerHandler := customer.NewHandler(customerStore, userStore)
 	customerHandler.RegisterRoutes(apiV1Mux)
 
 	sellerStore := seller.NewStore(s.databaseConn)
-	sellerHandler := seller.NewHandler(sellerStore)
+	sellerHandler := seller.NewHandler(sellerStore, userStore)
 	sellerHandler.RegisterRoutes(apiV1Mux)
 
 
