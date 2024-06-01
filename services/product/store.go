@@ -2,6 +2,7 @@ package product
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"strings"
 
@@ -17,11 +18,11 @@ func NewStore(db *sql.DB) *Store {
 }
 
 func (s *Store) GetProductByID(productID int) (*types.Product, error) {
-    query := "SELECT id, title, description, price, seller, quantity, created_at FROM products WHERE id = $1"
+    query := "SELECT id, title, description, price, seller_id, quantity, created_at FROM products WHERE id = $1"
     row := s.db.QueryRow(query, productID)
 
     p := new(types.Product)
-    err := row.Scan(&p.ID, &p.Title, &p.Description, &p.Price, &p.Seller, &p.Quantity, &p.CreatedAt)
+    err := row.Scan(&p.ID, &p.Title, &p.Description, &p.Price, &p.SellerID, &p.Quantity, &p.CreatedAt)
     if err != nil {
         return nil, err
     }
@@ -37,7 +38,7 @@ func (s *Store) GetProductsByID(productIDs []int) ([]types.Product, error) {
     }
     placeholderStr := strings.Join(placeholders, ",")
 
-    query := fmt.Sprintf("SELECT id, title, description, price, seller, quantity, created_at FROM products WHERE id IN (%s)", placeholderStr)
+    query := fmt.Sprintf("SELECT id, title, description, price, seller_id, quantity, created_at FROM products WHERE id IN (%s)", placeholderStr)
 
     args := make([]interface{}, len(productIDs))
     for i, v := range productIDs {
@@ -53,7 +54,7 @@ func (s *Store) GetProductsByID(productIDs []int) ([]types.Product, error) {
     var products []types.Product
     for rows.Next() {
         var p types.Product
-        err := rows.Scan(&p.ID, &p.Title, &p.Description, &p.Price, &p.Seller, &p.Quantity, &p.CreatedAt)
+        err := rows.Scan(&p.ID, &p.Title, &p.Description, &p.Price, &p.SellerID, &p.Quantity, &p.CreatedAt)
         if err != nil {
             return nil, err
         }
@@ -64,11 +65,11 @@ func (s *Store) GetProductsByID(productIDs []int) ([]types.Product, error) {
 }
 
 func (s *Store) GetProductByTitle(title string) (*types.Product, error) {
-    query := "SELECT id, title, description, price, seller, quantity, created_at FROM products WHERE title = $1"
+    query := "SELECT id, title, description, price, seller_id, quantity, created_at FROM products WHERE title = $1"
     row := s.db.QueryRow(query, title)
 
     p := new(types.Product)
-    err := row.Scan(&p.ID, &p.Title, &p.Description, &p.Price, &p.Seller, &p.Quantity, &p.CreatedAt)
+    err := row.Scan(&p.ID, &p.Title, &p.Description, &p.Price, &p.SellerID, &p.Quantity, &p.CreatedAt)
     if err != nil {
         if err == sql.ErrNoRows {
             return nil, nil
@@ -101,14 +102,22 @@ func (s *Store) GetProducts() ([]*types.Product, error) {
 }
 
 func (s *Store) CreateProduct(product types.CreateProductPayload) error {
-    _, err := s.db.Exec("INSERT INTO products (title, price, description, seller, quantity) VALUES ($1, $2, $3, $4, $5) ",
-        product.Title, product.Price, product.Description, product.Seller , product.Quantity)
+    var sellerExists bool
+    err := s.db.QueryRow("SELECT EXISTS(SELECT 1 FROM sellers WHERE id = $1)", product.SellerID).Scan(&sellerExists)
     if err != nil {
         return err
     }
 
-    return nil
+    if !sellerExists {
+        return errors.New("seller does not exist")
+    }
+
+    // Insert the new product
+    _, err = s.db.Exec("INSERT INTO products (title, price, description, seller_id, quantity) VALUES ($1, $2, $3, $4, $5)",
+        product.Title, product.Price, product.Description, product.SellerID, product.Quantity)
+    return err
 }
+
 
 func (s *Store) PatchProduct(product types.PatchProductPayload, productID int) error {
     query := "UPDATE products SET"
@@ -131,9 +140,9 @@ func (s *Store) PatchProduct(product types.PatchProductPayload, productID int) e
         params = append(params, *product.Price)
         paramID++
     }
-    if product.Seller != nil {
-        query += fmt.Sprintf(" seller = $%d,", paramID)
-        params = append(params, *product.Seller)
+    if product.SellerID >= 0 {
+        query += fmt.Sprintf(" seller_id = $%d,", paramID)
+        params = append(params, *&product.SellerID)
         paramID++
     }
     if product.Quantity != nil {
@@ -162,8 +171,8 @@ func (s *Store) PatchProduct(product types.PatchProductPayload, productID int) e
 
 
 func (s *Store) UpdateProduct(product types.Product) error {
-    _, err := s.db.Exec("UPDATE products SET title = $1, price = $2, description = $3, seller = $4, quantity = $5 WHERE id = $6",
-        product.Title, product.Price, product.Description, product.Seller, product.Quantity, product.ID)
+    _, err := s.db.Exec("UPDATE products SET title = $1, price = $2, description = $3, seller_id = $4, quantity = $5 WHERE id = $6",
+        product.Title, product.Price, product.Description, product.SellerID, product.Quantity, product.ID)
     if err != nil {
         return err
     }
@@ -181,7 +190,7 @@ func scanRowsIntoProduct(rows *sql.Rows) (*types.Product, error) {
 		&product.Title,
 		&product.Description,
 		&product.Price,
-		&product.Seller,
+		&product.SellerID,
 		&product.Quantity,
 		&product.CreatedAt,
 	)

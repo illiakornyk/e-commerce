@@ -124,6 +124,12 @@ func (h *Handler) handleCreateProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 
+	if err := payload.Validate(); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+
 	err := h.store.CreateProduct(payload)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)

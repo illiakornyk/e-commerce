@@ -52,7 +52,7 @@ type Product struct {
 	Title       string  `json:"title"`
 	Description string  `json:"description"`
 	Price       float64 `json:"price"`
-	Seller      string  `json:"seller"`
+	SellerID    int     `json:"seller_id"`
 	Quantity    int     `json:"quantity"`
 	CreatedAt time.Time   `json:"created_at"`
 }
@@ -61,7 +61,7 @@ type CreateProductPayload struct {
 	Title       string  `json:"title"`
 	Description string  `json:"description"`
 	Price       float64 `json:"price"`
-	Seller      string  `json:"seller"`
+	SellerID    int     `json:"seller_id"`
 	Quantity    int     `json:"quantity"`
 }
 
@@ -69,7 +69,7 @@ type PatchProductPayload struct {
 	Title       *string  `json:"title"`
 	Description *string  `json:"description"`
 	Price       *float64 `json:"price"`
-	Seller      *string  `json:"seller"`
+	SellerID    int     `json:"seller_id"`
 	Quantity    *int     `json:"quantity"`
 }
 
@@ -240,7 +240,7 @@ func (cpp *CreateProductPayload) Validate() error {
 	if cpp.Price <= 0 {
 		return fmt.Errorf("invalid Price: %f; must be positive", cpp.Price)
 	}
-	if cpp.Seller == "" {
+	if cpp.SellerID <= 0 {
 		return errors.New("the seller cannot be empty")
 	}
 	if cpp.Quantity < 0 {
