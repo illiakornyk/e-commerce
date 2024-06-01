@@ -102,15 +102,14 @@ func (s *Store) GetProducts() ([]*types.Product, error) {
 }
 
 func (s *Store) CreateProduct(product types.CreateProductPayload) error {
-    var sellerExists bool
-    err := s.db.QueryRow("SELECT EXISTS(SELECT 1 FROM sellers WHERE id = $1)", product.SellerID).Scan(&sellerExists)
-    if err != nil {
-        return err
-    }
+    exists, err := s.SellerExists(product.SellerID)
+        if err != nil {
+            return err
+        }
+        if !exists {
+            return errors.New("seller does not exist")
+        }
 
-    if !sellerExists {
-        return errors.New("seller does not exist")
-    }
 
     // Insert the new product
     _, err = s.db.Exec("INSERT INTO products (title, price, description, seller_id, quantity) VALUES ($1, $2, $3, $4, $5)",
@@ -123,6 +122,20 @@ func (s *Store) PatchProduct(product types.PatchProductPayload, productID int) e
     query := "UPDATE products SET"
     params := []interface{}{}
     paramID := 1
+
+	if product.SellerID >= 0 {
+        exists, err := s.SellerExists(product.SellerID)
+        if err != nil {
+            return err
+        }
+        if !exists {
+            return errors.New("seller does not exist")
+        }
+
+        query += fmt.Sprintf(" seller_id = $%d,", paramID)
+        params = append(params, product.SellerID)
+        paramID++
+    }
 
     // Check if the pointer is not nil before appending to the query
     if product.Title != nil {
@@ -138,11 +151,6 @@ func (s *Store) PatchProduct(product types.PatchProductPayload, productID int) e
     if product.Price != nil {
         query += fmt.Sprintf(" price = $%d,", paramID)
         params = append(params, *product.Price)
-        paramID++
-    }
-    if product.SellerID >= 0 {
-        query += fmt.Sprintf(" seller_id = $%d,", paramID)
-        params = append(params, *&product.SellerID)
         paramID++
     }
     if product.Quantity != nil {
@@ -209,4 +217,11 @@ func (s *Store) DeleteProduct(productID int) error {
     }
 
     return nil
+}
+
+
+func (s *Store) SellerExists(sellerID int) (bool, error) {
+    var exists bool
+    err := s.db.QueryRow("SELECT EXISTS(SELECT 1 FROM sellers WHERE id = $1)", sellerID).Scan(&exists)
+    return exists, err
 }
