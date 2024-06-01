@@ -2,6 +2,7 @@ package user
 
 import (
 	"database/sql"
+	"log"
 
 	"fmt"
 
@@ -26,8 +27,10 @@ func (s *Store) GetUserByEmail(email string) (*types.User, error) {
     err := row.Scan(&u.ID, &u.Username, &u.Email, &u.Password, &u.CreatedAt)
     if err != nil {
         if err == sql.ErrNoRows {
+            log.Println("No user found with email:", email)
             return nil, nil
         }
+        log.Println("Error querying user by email:", err)
         return nil, err
     }
 

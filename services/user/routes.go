@@ -39,11 +39,17 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	u, err := h.store.GetUserByEmail(payload.Email)
-	if err != nil {
-		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid email or password"))
-		return
-	}
+
+	 u, err := h.store.GetUserByEmail(payload.Email)
+    if err != nil {
+        utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid email or password"))
+        return
+    }
+
+    if u == nil {
+        utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid email or password"))
+        return
+    }
 
 
 	if !auth.ComparePasswords(u.Password,  []byte(payload.Password)) {
@@ -51,12 +57,16 @@ func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+
+
 	secret := []byte(config.Envs.JWTSecret)
 	token, err := auth.CreateJWT(secret, u.ID)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
+
+
 
 	utils.WriteJSON(w, http.StatusOK, map[string]string{"token":token})
 }
