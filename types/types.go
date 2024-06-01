@@ -140,6 +140,29 @@ type CreateCustomerPayload struct {
 }
 
 
+type SellerStore interface {
+	// GetSellerByID(id int) (*Seller, error)
+	// GetSellers() ([]*Seller, error)
+	CreateSeller(CreateSellerPayload) error
+	// UpdateSeller(Seller) error
+	// DeleteSeller(sellerID int) error
+}
+
+type Seller struct {
+	ID          int       `json:"id"`
+	Name        string    `json:"name"`
+	PhoneNumber string    `json:"phone_number"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+type CreateSellerPayload struct {
+	Name        string `json:"name"`
+	PhoneNumber string `json:"phone_number"`
+}
+
+
+
 
 func (p *RegisterUserPayload) Validate() error {
 	if p.Username == "" {
