@@ -20,7 +20,7 @@ func NewHandler(store types.UserStore) *Handler {
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/login", h.handleLogin)
-	mux.HandleFunc("/register", h.handleRegister)
+	// mux.HandleFunc("/register", h.handleRegister)
 }
 
 func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
