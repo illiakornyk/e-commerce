@@ -278,3 +278,18 @@ func isValidPhoneNumber(phone string) bool {
 	phoneRegex := regexp.MustCompile(`^\+[1-9]\d{1,14}$`)
 	return phoneRegex.MatchString(phone)
 }
+
+
+func (p *CreateSellerPayload) Validate() error {
+	if p.Name == "" {
+		return errors.New("name is required")
+	}
+	if len(p.Name) < 2 {
+		return errors.New("name must be at least 2 characters long")
+	}
+	if !isValidPhoneNumber(p.PhoneNumber) {
+		return errors.New("phone number is not in valid international format")
+	}
+
+	return nil
+}

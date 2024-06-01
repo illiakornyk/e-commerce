@@ -24,7 +24,6 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 }
 
 func (h *Handler) handleSellers(w http.ResponseWriter, r *http.Request) {
-    // Check if the path is exactly "/products", which means we're handling the collection of products
     if r.URL.Path == "/sellers" {
         switch r.Method {
         case http.MethodGet:
@@ -68,6 +67,11 @@ func (h *Handler) handleCreateSeller(w http.ResponseWriter, r *http.Request) {
 
 	var payload types.CreateSellerPayload
 	if err := utils.ParseJSON(r, &payload); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	if err := payload.Validate(); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
