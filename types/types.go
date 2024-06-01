@@ -112,6 +112,34 @@ type CartCheckoutItem struct {
 }
 
 
+type CustomerStore interface {
+	// GetCustomerByID(id int) (*Customer, error)
+	// GetCustomers() ([]*Customer, error)
+	CreateCustomer(CreateCustomerPayload) error
+	// UpdateCustomer(Customer) error
+	// DeleteCustomer(customerID int) error
+}
+
+type Customer struct {
+	ID          int       `json:"id"`
+	FirstName   string    `json:"first_name"`
+	LastName    string    `json:"last_name"`
+	Email       string    `json:"email"`
+	PhoneNumber string    `json:"phone_number,omitempty"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+type CreateCustomerPayload struct {
+	FirstName   string `json:"first_name"`
+	LastName    string `json:"last_name"`
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phone_number,omitempty"`
+	Address     string `json:"address"`
+}
+
+
+
 func (p *RegisterUserPayload) Validate() error {
 	if p.Username == "" {
 		return errors.New("username is required")
