@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/illiakornyk/e-commerce/services/cart"
+	"github.com/illiakornyk/e-commerce/services/customer"
 	"github.com/illiakornyk/e-commerce/services/order"
 	"github.com/illiakornyk/e-commerce/services/product"
 	"github.com/illiakornyk/e-commerce/services/user"
@@ -40,6 +41,10 @@ func (s *APIServer) Run() error {
 
 	cartHandler := cart.NewHandler(productStore, orderStore, userStore)
 	cartHandler.RegisterRoutes(apiV1Mux)
+
+	customerStore := customer.NewStore(s.databaseConn)
+	customerHandler := customer.NewHandler(customerStore)
+	customerHandler.RegisterRoutes(apiV1Mux)
 
 
 	log.Println("Starting server on port", s.listenAddress)

@@ -112,6 +112,35 @@ type CartCheckoutItem struct {
 }
 
 
+type CustomerStore interface {
+	GetCustomerByID(id int) (*Customer, error)
+	GetCustomers() ([]*Customer, error)
+	CreateCustomer(CreateCustomerPayload) error
+	// UpdateCustomer(Customer) error
+	// DeleteCustomer(customerID int) error
+}
+
+type Customer struct {
+	ID          int       `json:"id"`
+	FirstName   string    `json:"first_name"`
+	LastName    string    `json:"last_name"`
+	Email       string    `json:"email"`
+	PhoneNumber string    `json:"phone_number,omitempty"`
+	Address     string    `json:"address"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+type CreateCustomerPayload struct {
+	FirstName   string `json:"first_name"`
+	LastName    string `json:"last_name"`
+	Email       string `json:"email"`
+	PhoneNumber string `json:"phone_number,omitempty"`
+	Address     string `json:"address"`
+}
+
+
+
 func (p *RegisterUserPayload) Validate() error {
 	if p.Username == "" {
 		return errors.New("username is required")
@@ -191,4 +220,38 @@ func (cpp *CreateProductPayload) Validate() error {
 	}
 
 	return nil
+}
+
+
+func (p *CreateCustomerPayload) Validate() error {
+	if p.FirstName == "" {
+		return errors.New("first name is required")
+	}
+	if p.LastName == "" {
+		return errors.New("last name is required")
+	}
+	if p.Email == "" {
+		return errors.New("email is required")
+	}
+	if !isValidEmail(p.Email) {
+		return errors.New("email is not valid")
+	}
+	// PhoneNumber is optional, but if provided, it should be validated.
+	if p.PhoneNumber != "" && !isValidPhoneNumber(p.PhoneNumber) {
+		return errors.New("phone number is not valid")
+	}
+	if p.Address == "" {
+		return errors.New("address is required")
+	}
+	return nil
+}
+
+func isValidEmail(email string) bool {
+	emailRegex := regexp.MustCompile(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`)
+	return emailRegex.MatchString(email)
+}
+
+func isValidPhoneNumber(phone string) bool {
+	phoneRegex := regexp.MustCompile(`^\+[1-9]\d{1,14}$`)
+	return phoneRegex.MatchString(phone)
 }
