@@ -54,7 +54,6 @@ func WithJWTAuth(handlerFunc http.HandlerFunc, store types.UserStore) http.Handl
 		}
 
 		claims := token.Claims.(jwt.MapClaims)
-		fmt.Println(claims)
 		str := claims["user_id"].(string) //somewhere here
 
 		userID, err := strconv.Atoi(str)

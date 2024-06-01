@@ -6,21 +6,25 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/illiakornyk/e-commerce/services/auth"
 	"github.com/illiakornyk/e-commerce/types"
 	"github.com/illiakornyk/e-commerce/utils"
 )
 
 type Handler struct {
 	store types.SellerStore
+	userStore  types.UserStore
 }
 
-func NewHandler(store types.SellerStore) *Handler {
-	return &Handler{store: store}
+func NewHandler(store types.SellerStore, userStore types.UserStore) *Handler {
+	return &Handler{store: store, userStore: userStore}
 }
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
-    mux.HandleFunc("/sellers", h.handleSellers)
-    mux.HandleFunc("/sellers/", h.handleSellers)
+
+
+    mux.HandleFunc("/sellers", auth.WithJWTAuth(h.handleSellers, h.userStore))
+    mux.HandleFunc("/sellers/", auth.WithJWTAuth(h.handleSellers, h.userStore))
 }
 
 func (h *Handler) handleSellers(w http.ResponseWriter, r *http.Request) {
