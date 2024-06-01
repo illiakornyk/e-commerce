@@ -23,3 +23,47 @@ func (s *Store) CreateCustomer(customer types.CreateCustomerPayload) error {
 
     return nil
 }
+
+func (s *Store) GetCustomers() ([]*types.Customer, error) {
+    rows, err := s.db.Query("SELECT id, first_name, last_name, email, phone_number, address, created_at, updated_at FROM customers")
+    if err != nil {
+        return nil, err
+    }
+    defer rows.Close()
+
+    customers := make([]*types.Customer, 0)
+    for rows.Next() {
+        c, err := scanRowsIntoCustomer(rows)
+        if err != nil {
+            return nil, err
+        }
+
+        customers = append(customers, c)
+    }
+
+    if err = rows.Err(); err != nil {
+        return nil, err
+    }
+
+    return customers, nil
+}
+
+func scanRowsIntoCustomer(rows *sql.Rows) (*types.Customer, error) {
+    customer := new(types.Customer)
+
+    err := rows.Scan(
+        &customer.ID,
+        &customer.FirstName,
+        &customer.LastName,
+        &customer.Email,
+        &customer.PhoneNumber,
+        &customer.Address,
+        &customer.CreatedAt,
+        &customer.UpdatedAt,
+    )
+    if err != nil {
+        return nil, err
+    }
+
+    return customer, nil
+}

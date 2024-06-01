@@ -114,7 +114,7 @@ type CartCheckoutItem struct {
 
 type CustomerStore interface {
 	// GetCustomerByID(id int) (*Customer, error)
-	// GetCustomers() ([]*Customer, error)
+	GetCustomers() ([]*Customer, error)
 	CreateCustomer(CreateCustomerPayload) error
 	// UpdateCustomer(Customer) error
 	// DeleteCustomer(customerID int) error
@@ -126,6 +126,7 @@ type Customer struct {
 	LastName    string    `json:"last_name"`
 	Email       string    `json:"email"`
 	PhoneNumber string    `json:"phone_number,omitempty"`
+	Address     string    `json:"address"`
 	CreatedAt   time.Time `json:"created_at"`
 	UpdatedAt   time.Time `json:"updated_at"`
 }

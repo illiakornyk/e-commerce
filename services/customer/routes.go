@@ -24,7 +24,7 @@ func (h *Handler) handleCustomers(w http.ResponseWriter, r *http.Request) {
 	if r.URL.Path == "/customers" {
     	switch r.Method {
         	case http.MethodGet:
-            	// h.handleGetProducts(w, r)
+            	h.handleGetCustomers(w, r)
         	case http.MethodPost:
             	h.handleCreateCustomer(w, r)
 			default:
@@ -60,4 +60,19 @@ func (h *Handler) handleCreateCustomer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, http.StatusCreated, map[string]string{"status": "customer created"})
+}
+
+
+func (h *Handler) handleGetCustomers(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.WriteError(w, http.StatusMethodNotAllowed, fmt.Errorf("method not allowed"))
+		return
+	}
+	customers, err := h.store.GetCustomers()
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, customers)
 }
