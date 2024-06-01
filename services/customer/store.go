@@ -48,6 +48,21 @@ func (s *Store) GetCustomers() ([]*types.Customer, error) {
     return customers, nil
 }
 
+
+func (s *Store) GetCustomerByID(customerID int) (*types.Customer, error) {
+    query := "SELECT id, first_name, last_name, email, phone_number, address, created_at, updated_at FROM customers WHERE id = $1"
+    row := s.db.QueryRow(query, customerID)
+
+    c := new(types.Customer)
+    err := row.Scan(&c.ID, &c.FirstName, &c.LastName, &c.Email, &c.PhoneNumber, &c.Address, &c.CreatedAt, &c.UpdatedAt)
+    if err != nil {
+        return nil, err
+    }
+
+    return c, nil
+}
+
+
 func scanRowsIntoCustomer(rows *sql.Rows) (*types.Customer, error) {
     customer := new(types.Customer)
 

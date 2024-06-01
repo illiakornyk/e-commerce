@@ -113,7 +113,7 @@ type CartCheckoutItem struct {
 
 
 type CustomerStore interface {
-	// GetCustomerByID(id int) (*Customer, error)
+	GetCustomerByID(id int) (*Customer, error)
 	GetCustomers() ([]*Customer, error)
 	CreateCustomer(CreateCustomerPayload) error
 	// UpdateCustomer(Customer) error

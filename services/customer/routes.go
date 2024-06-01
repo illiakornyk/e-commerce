@@ -3,6 +3,8 @@ package customer
 import (
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/illiakornyk/e-commerce/types"
 	"github.com/illiakornyk/e-commerce/utils"
@@ -18,6 +20,7 @@ func NewHandler(store types.CustomerStore) *Handler {
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
     mux.HandleFunc("/customers", h.handleCustomers)
+	mux.HandleFunc("/customers/", h.handleCustomers)
 }
 
 func (h *Handler) handleCustomers(w http.ResponseWriter, r *http.Request) {
@@ -32,6 +35,24 @@ func (h *Handler) handleCustomers(w http.ResponseWriter, r *http.Request) {
 			}
 			return
     }
+
+
+	pathSegments := strings.Split(r.URL.Path, "/")
+    if len(pathSegments) == 3 {
+        switch r.Method {
+        case http.MethodGet:
+            h.handleGetCustomerByID(w, r)
+        // case http.MethodPatch:
+        //     h.handlePatchCustomer(w, r)
+		// case http.MethodDelete:
+		// 	h.handleDeleteCustomer(w, r)
+        default:
+            utils.WriteError(w, http.StatusMethodNotAllowed, fmt.Errorf("method not allowed"))
+        }
+        return
+    }
+
+    utils.WriteError(w, http.StatusNotFound, fmt.Errorf("not found"))
 }
 
 
@@ -60,6 +81,41 @@ func (h *Handler) handleCreateCustomer(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, http.StatusCreated, map[string]string{"status": "customer created"})
+}
+
+
+
+func (h *Handler) handleGetCustomerByID(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.WriteError(w, http.StatusMethodNotAllowed, fmt.Errorf("method not allowed"))
+		return
+	}
+
+	// Extract the product ID from the URL path
+	pathSegments := strings.Split(r.URL.Path, "/")
+	if len(pathSegments) < 3 {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("customer ID is required"))
+		return
+	}
+	productIDStr := pathSegments[2]
+	customerID, err := strconv.Atoi(productIDStr)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid customer ID"))
+		return
+	}
+
+	// Retrieve the product by ID
+	customer, err := h.store.GetCustomerByID(customerID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	if customer == nil {
+		utils.WriteError(w, http.StatusNotFound, fmt.Errorf("customer with ID %d not found", customerID))
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, customer)
 }
 
 
