@@ -41,6 +41,7 @@ func (s *APIServer) Run() error {
 	cartHandler := cart.NewHandler(productStore, orderStore, userStore)
 	cartHandler.RegisterRoutes(apiV1Mux)
 
+
 	log.Println("Starting server on port", s.listenAddress)
 	return http.ListenAndServe(s.listenAddress, mux)
 }

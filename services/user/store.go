@@ -26,7 +26,7 @@ func (s *Store) GetUserByEmail(email string) (*types.User, error) {
     err := row.Scan(&u.ID, &u.Username, &u.Email, &u.Password, &u.CreatedAt)
     if err != nil {
         if err == sql.ErrNoRows {
-            return nil, fmt.Errorf("user not found")
+            return nil, nil
         }
         return nil, err
     }
