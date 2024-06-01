@@ -81,10 +81,9 @@ type OrdersStore interface {
 
 type Order struct {
 	ID int `json:"id"`
-	UserID int `json:"user_id"`
+	CustomerID int `json:"customer_id"`
 	Total float64 `json:"total"`
 	Status string `json:"status"`
-	Address string `json:"address"`
 	CreatedAt time.Time   `json:"created_at"`
 }
 
@@ -104,6 +103,7 @@ type CartItem struct {
 
 type CartCheckoutPayload struct {
 	Items []CartCheckoutItem `json:"items"`
+	CustomerID int `json:"customer_id"`
 }
 
 type CartCheckoutItem struct {
@@ -220,6 +220,11 @@ func (ccp *CartCheckoutPayload) Validate() error {
 		if item.Quantity <= 0 {
 			return fmt.Errorf("invalid Quantity for ProductID %d: %d; must be positive", item.ProductID, item.Quantity)
 		}
+
+	}
+
+	if ccp.CustomerID <= 0 {
+		return fmt.Errorf("invalid CustomerID: %d; must be positive", ccp.CustomerID)
 	}
 
 	return nil
