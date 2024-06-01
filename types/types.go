@@ -42,7 +42,9 @@ type ProductStore interface {
 	GetProductByTitle(title string) (*Product, error)
 	GetProducts() ([]*Product, error)
 	CreateProduct(CreateProductPayload) error
+	PatchProduct(payload PatchProductPayload, productID int) error
 	UpdateProduct(Product) error
+	DeleteProduct(productID int) error
 }
 
 type Product struct {
@@ -62,6 +64,15 @@ type CreateProductPayload struct {
 	Seller      string  `json:"seller"`
 	Quantity    int     `json:"quantity"`
 }
+
+type PatchProductPayload struct {
+	Title       *string  `json:"title"`
+	Description *string  `json:"description"`
+	Price       *float64 `json:"price"`
+	Seller      *string  `json:"seller"`
+	Quantity    *int     `json:"quantity"`
+}
+
 
 type OrdersStore interface {
 	CreateOrder(Order) (int, error)
