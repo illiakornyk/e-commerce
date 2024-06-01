@@ -3,6 +3,8 @@ package seller
 import (
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/illiakornyk/e-commerce/types"
 	"github.com/illiakornyk/e-commerce/utils"
@@ -35,22 +37,22 @@ func (h *Handler) handleSellers(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    // pathSegments := strings.Split(r.URL.Path, "/")
-    // if len(pathSegments) == 3 {
-    //     switch r.Method {
-    //     case http.MethodGet:
-    //         h.handleGetProductByID(w, r)
-    //     case http.MethodPatch:
-    //         h.handlePatchProduct(w, r)
-	// 	case http.MethodDelete:
-	// 		h.handleDeleteProduct(w, r)
-    //     default:
-    //         utils.WriteError(w, http.StatusMethodNotAllowed, fmt.Errorf("method not allowed"))
-    //     }
-    //     return
-    // }
+    pathSegments := strings.Split(r.URL.Path, "/")
+    if len(pathSegments) == 3 {
+        switch r.Method {
+        case http.MethodGet:
+            h.handleGetSellerByID(w, r)
+        case http.MethodPatch:
+            // h.handlePatchProduct(w, r)
+		case http.MethodDelete:
+			// h.handleDeleteProduct(w, r)
+        default:
+            utils.WriteError(w, http.StatusMethodNotAllowed, fmt.Errorf("method not allowed"))
+        }
+        return
+    }
 
-    // utils.WriteError(w, http.StatusNotFound, fmt.Errorf("not found"))
+    utils.WriteError(w, http.StatusNotFound, fmt.Errorf("not found"))
 }
 
 
@@ -78,4 +80,38 @@ func (h *Handler) handleCreateSeller(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, http.StatusCreated, map[string]string{"status": "seller created"})
+}
+
+
+func (h *Handler) handleGetSellerByID(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.WriteError(w, http.StatusMethodNotAllowed, fmt.Errorf("method not allowed"))
+		return
+	}
+
+	// Extract the product ID from the URL path
+	pathSegments := strings.Split(r.URL.Path, "/")
+	if len(pathSegments) < 3 {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("seller ID is required"))
+		return
+	}
+	sellerIDStr := pathSegments[2]
+	sellerID, err := strconv.Atoi(sellerIDStr)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid seller ID"))
+		return
+	}
+
+	// Retrieve the product by ID
+	seller, err := h.store.GetSellerByID(sellerID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	if seller == nil {
+		utils.WriteError(w, http.StatusNotFound, fmt.Errorf("seller with ID %d not found", sellerID))
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, seller)
 }

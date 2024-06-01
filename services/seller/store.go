@@ -14,17 +14,17 @@ func NewStore(db *sql.DB) *Store {
 	return &Store{db: db}
 }
 
-func (s *Store) GetSellerByID(productID int) (*types.Product, error) {
-    query := "SELECT id, title, description, price, seller, quantity, created_at FROM products WHERE id = $1"
-    row := s.db.QueryRow(query, productID)
+func (s *Store) GetSellerByID(sellerID int) (*types.Seller, error) {
+    query := "SELECT id, name, phone_number, created_at, updated_at FROM sellers WHERE id = $1"
+    row := s.db.QueryRow(query, sellerID)
 
-    p := new(types.Product)
-    err := row.Scan(&p.ID, &p.Title, &p.Description, &p.Price, &p.Seller, &p.Quantity, &p.CreatedAt)
+    seller := new(types.Seller)
+    err := row.Scan(&seller.ID, &seller.Name, &seller.PhoneNumber, &seller.CreatedAt, &seller.UpdatedAt)
     if err != nil {
         return nil, err
     }
 
-    return p, nil
+    return seller, nil
 }
 
 func (s *Store) CreateSeller(seller types.CreateSellerPayload) error {

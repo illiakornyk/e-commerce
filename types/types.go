@@ -141,7 +141,7 @@ type CreateCustomerPayload struct {
 
 
 type SellerStore interface {
-	// GetSellerByID(id int) (*Seller, error)
+	GetSellerByID(id int) (*Seller, error)
 	// GetSellers() ([]*Seller, error)
 	CreateSeller(CreateSellerPayload) error
 	// UpdateSeller(Seller) error
