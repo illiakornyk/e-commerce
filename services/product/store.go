@@ -110,6 +110,57 @@ func (s *Store) CreateProduct(product types.CreateProductPayload) error {
     return nil
 }
 
+func (s *Store) PatchProduct(product types.PatchProductPayload, productID int) error {
+    query := "UPDATE products SET"
+    params := []interface{}{}
+    paramID := 1
+
+    // Check if the pointer is not nil before appending to the query
+    if product.Title != nil {
+        query += fmt.Sprintf(" title = $%d,", paramID)
+        params = append(params, *product.Title)
+        paramID++
+    }
+    if product.Description != nil {
+        query += fmt.Sprintf(" description = $%d,", paramID)
+        params = append(params, *product.Description)
+        paramID++
+    }
+    if product.Price != nil {
+        query += fmt.Sprintf(" price = $%d,", paramID)
+        params = append(params, *product.Price)
+        paramID++
+    }
+    if product.Seller != nil {
+        query += fmt.Sprintf(" seller = $%d,", paramID)
+        params = append(params, *product.Seller)
+        paramID++
+    }
+    if product.Quantity != nil {
+        query += fmt.Sprintf(" quantity = $%d,", paramID)
+        params = append(params, *product.Quantity)
+        paramID++
+    }
+
+    // Remove the trailing comma
+    query = strings.TrimSuffix(query, ",")
+
+    // Append the WHERE clause to update the product by ID
+    query += fmt.Sprintf(" WHERE id = $%d", paramID)
+    params = append(params, productID)
+
+    // Execute the query
+    _, err := s.db.Exec(query, params...)
+    if err != nil {
+        return err
+    }
+
+    return nil
+}
+
+
+
+
 func (s *Store) UpdateProduct(product types.Product) error {
     _, err := s.db.Exec("UPDATE products SET title = $1, price = $2, description = $3, seller = $4, quantity = $5 WHERE id = $6",
         product.Title, product.Price, product.Description, product.Seller, product.Quantity, product.ID)
@@ -119,6 +170,7 @@ func (s *Store) UpdateProduct(product types.Product) error {
 
     return nil
 }
+
 
 
 func scanRowsIntoProduct(rows *sql.Rows) (*types.Product, error) {

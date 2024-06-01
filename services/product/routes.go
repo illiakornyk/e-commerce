@@ -3,6 +3,8 @@ package product
 import (
 	"fmt"
 	"net/http"
+	"strconv"
+	"strings"
 
 	"github.com/illiakornyk/e-commerce/types"
 	"github.com/illiakornyk/e-commerce/utils"
@@ -17,25 +19,40 @@ func NewHandler(store types.ProductStore) *Handler {
 }
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
-	    mux.HandleFunc("/products", h.handleProducts)
-
-
+    mux.HandleFunc("/products", h.handleProducts)
+    mux.HandleFunc("/products/", h.handleProducts) // This will catch all paths under /products/
 }
 
 func (h *Handler) handleProducts(w http.ResponseWriter, r *http.Request) {
-    switch r.Method {
-    case http.MethodGet:
-        if r.URL.Query().Has("title") {
-            h.handleGetProduct(w, r)
-            return
+    // Check if the path is exactly "/products", which means we're handling the collection of products
+    if r.URL.Path == "/products" {
+        switch r.Method {
+        case http.MethodGet:
+            h.handleGetProducts(w, r)
+        case http.MethodPost:
+            h.handleCreateProduct(w, r)
+        default:
+            utils.WriteError(w, http.StatusMethodNotAllowed, fmt.Errorf("method not allowed"))
         }
-        h.handleGetProducts(w, r)
-    case http.MethodPost:
-        h.handleCreateProduct(w, r)
-    default:
-        utils.WriteError(w, http.StatusMethodNotAllowed, fmt.Errorf("method not allowed"))
+        return
     }
+
+    pathSegments := strings.Split(r.URL.Path, "/")
+    if len(pathSegments) == 3 {
+        switch r.Method {
+        case http.MethodGet:
+            h.handleGetProductByID(w, r)
+        case http.MethodPatch:
+            h.handlePatchProduct(w, r)
+        default:
+            utils.WriteError(w, http.StatusMethodNotAllowed, fmt.Errorf("method not allowed"))
+        }
+        return
+    }
+
+    utils.WriteError(w, http.StatusNotFound, fmt.Errorf("not found"))
 }
+
 
 
 func (h *Handler) handleGetProducts(w http.ResponseWriter, r *http.Request) {
@@ -52,26 +69,39 @@ func (h *Handler) handleGetProducts(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, ps)
 }
 
-func (h *Handler) handleGetProduct(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) handleGetProductByID(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodGet {
-			utils.WriteError(w, http.StatusMethodNotAllowed, fmt.Errorf("method not allowed"))
-			return
-	}
-
-	productTitle := r.URL.Query().Get("title")
-	if productTitle == "" {
-		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("product title is required"))
+		utils.WriteError(w, http.StatusMethodNotAllowed, fmt.Errorf("method not allowed"))
 		return
 	}
 
-	product, err := h.store.GetProductByTitle(productTitle)
+	// Extract the product ID from the URL path
+	pathSegments := strings.Split(r.URL.Path, "/")
+	if len(pathSegments) < 3 {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("product ID is required"))
+		return
+	}
+	productIDStr := pathSegments[2]
+	productID, err := strconv.Atoi(productIDStr)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid product ID"))
+		return
+	}
+
+	// Retrieve the product by ID
+	product, err := h.store.GetProductByID(productID)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	if product == nil {
+		utils.WriteError(w, http.StatusNotFound, fmt.Errorf("product with ID %d not found", productID))
 		return
 	}
 
 	utils.WriteJSON(w, http.StatusOK, product)
 }
+
 
 
 func (h *Handler) handleCreateProduct(w http.ResponseWriter, r *http.Request) {
@@ -87,18 +117,52 @@ func (h *Handler) handleCreateProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 
-
-	existingProduct, err := h.store.GetProductByTitle(payload.Title)
-	if err == nil && existingProduct != nil {
-		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("product with title %s already exists", payload.Title))
-		return
-	}
-
-	err = h.store.CreateProduct(payload)
+	err := h.store.CreateProduct(payload)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
 		return
 	}
 
 	utils.WriteJSON(w, http.StatusCreated, map[string]string{"status": "product created"})
+}
+
+
+func (h *Handler) handlePatchProduct(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPatch {
+		utils.WriteError(w, http.StatusMethodNotAllowed, fmt.Errorf("method not allowed"))
+		return
+	}
+
+	productIDStr := strings.TrimPrefix(r.URL.Path, "/products/")
+	productID, err := strconv.Atoi(productIDStr)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid product ID"))
+		return
+	}
+
+	var payload types.PatchProductPayload
+	if err := utils.ParseJSON(r, &payload); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
+	// Check if the product exists by ID before attempting to update
+	existingProduct, err := h.store.GetProductByID(productID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+	if existingProduct == nil {
+		utils.WriteError(w, http.StatusNotFound, fmt.Errorf("product with ID %d does not exist", productID))
+		return
+	}
+
+
+	err = h.store.PatchProduct(payload, productID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, map[string]string{"status": "product updated"})
 }
