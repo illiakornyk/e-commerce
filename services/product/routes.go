@@ -25,6 +25,10 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 func (h *Handler) handleProducts(w http.ResponseWriter, r *http.Request) {
     switch r.Method {
     case http.MethodGet:
+        if r.URL.Query().Has("title") {
+            h.handleGetProduct(w, r)
+            return
+        }
         h.handleGetProducts(w, r)
     case http.MethodPost:
         h.handleCreateProduct(w, r)
@@ -48,6 +52,27 @@ func (h *Handler) handleGetProducts(w http.ResponseWriter, r *http.Request) {
 	utils.WriteJSON(w, http.StatusOK, ps)
 }
 
+func (h *Handler) handleGetProduct(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+			utils.WriteError(w, http.StatusMethodNotAllowed, fmt.Errorf("method not allowed"))
+			return
+	}
+
+	productTitle := r.URL.Query().Get("title")
+	if productTitle == "" {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("product title is required"))
+		return
+	}
+
+	product, err := h.store.GetProductByTitle(productTitle)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, product)
+}
+
 
 func (h *Handler) handleCreateProduct(w http.ResponseWriter, r *http.Request) {
 	if r.Method != http.MethodPost {
@@ -55,18 +80,12 @@ func (h *Handler) handleCreateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-
 	var payload types.CreateProductPayload
 	if err := utils.ParseJSON(r, &payload); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
 
-
-	if err := payload.Validate(); err != nil {
-		utils.WriteError(w, http.StatusBadRequest, err)
-		return
-	}
 
 
 	existingProduct, err := h.store.GetProductByTitle(payload.Title)

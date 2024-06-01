@@ -1,7 +1,6 @@
 package cart
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/illiakornyk/e-commerce/services/auth"
@@ -32,10 +31,6 @@ func (h *Handler) RegisterRoutes(router *http.ServeMux) {
 
 func (h *Handler) handleCheckout(w http.ResponseWriter, r *http.Request) {
 	userID := auth.GetUserIDFromContext(r.Context())
-
-	fmt.Println("userID", userID)
-
-//NOTE: the issue in userID not getting from the context
 
 	var cart types.CartCheckoutPayload
 	if err := utils.ParseJSON(r, &cart); err != nil {
