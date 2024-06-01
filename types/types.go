@@ -140,6 +140,29 @@ type CreateCustomerPayload struct {
 }
 
 
+type SellerStore interface {
+	GetSellerByID(id int) (*Seller, error)
+	GetSellers() ([]*Seller, error)
+	CreateSeller(CreateSellerPayload) error
+	// UpdateSeller(Seller) error
+	// DeleteSeller(sellerID int) error
+}
+
+type Seller struct {
+	ID          int       `json:"id"`
+	Name        string    `json:"name"`
+	PhoneNumber string    `json:"phone_number"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+}
+
+type CreateSellerPayload struct {
+	Name        string `json:"name"`
+	PhoneNumber string `json:"phone_number"`
+}
+
+
+
 
 func (p *RegisterUserPayload) Validate() error {
 	if p.Username == "" {
@@ -254,4 +277,19 @@ func isValidEmail(email string) bool {
 func isValidPhoneNumber(phone string) bool {
 	phoneRegex := regexp.MustCompile(`^\+[1-9]\d{1,14}$`)
 	return phoneRegex.MatchString(phone)
+}
+
+
+func (p *CreateSellerPayload) Validate() error {
+	if p.Name == "" {
+		return errors.New("name is required")
+	}
+	if len(p.Name) < 2 {
+		return errors.New("name must be at least 2 characters long")
+	}
+	if !isValidPhoneNumber(p.PhoneNumber) {
+		return errors.New("phone number is not in valid international format")
+	}
+
+	return nil
 }
