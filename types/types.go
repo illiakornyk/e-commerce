@@ -2,10 +2,12 @@ package types
 
 import (
 	"errors"
+	"fmt"
 	"regexp"
 	"time"
 )
 
+// User
 type UserStore interface {
 	GetUserByEmail(email string) (*User, error)
 	GetUserByID(id int) (*User, error)
@@ -32,6 +34,8 @@ type LoginUserPayload struct {
 	Email    string `json:"email"`
 }
 
+// Product
+
 type ProductStore interface {
 	GetProductByID(id int) (*Product, error)
 	GetProductsByID(ids []int) ([]Product, error)
@@ -47,6 +51,7 @@ type Product struct {
 	Description string  `json:"description"`
 	Price       float64 `json:"price"`
 	Seller      string  `json:"seller"`
+	Quantity    int     `json:"quantity"`
 	CreatedAt time.Time   `json:"created_at"`
 }
 
@@ -55,9 +60,45 @@ type CreateProductPayload struct {
 	Description string  `json:"description"`
 	Price       float64 `json:"price"`
 	Seller      string  `json:"seller"`
+	Quantity    int     `json:"quantity"`
 }
 
+type OrdersStore interface {
+	CreateOrder(Order) (int, error)
+	CreateOrderItem(OrderItem) error
+}
 
+type Order struct {
+	ID int `json:"id"`
+	UserID int `json:"user_id"`
+	Total float64 `json:"total"`
+	Status string `json:"status"`
+	Address string `json:"address"`
+	CreatedAt time.Time   `json:"created_at"`
+}
+
+type OrderItem struct {
+	ID int `json:"id"`
+	OrderID int `json:"order_id"`
+	ProductID int `json:"product_id"`
+	Quantity int `json:"quantity"`
+	Price float64 `json:"price"`
+	CreatedAt time.Time   `json:"created_at"`
+}
+
+type CartItem struct {
+	ProductID int `json:"product_id"`
+	Quantity int `json:"quantity"`
+}
+
+type CartCheckoutPayload struct {
+	Items []CartCheckoutItem `json:"items"`
+}
+
+type CartCheckoutItem struct {
+	ProductID int `json:"product_id"`
+	Quantity  int `json:"quantity"`
+}
 
 
 func (p *RegisterUserPayload) Validate() error {
@@ -98,6 +139,44 @@ func (p *LoginUserPayload) Validate() error {
 	}
 	if !matched {
 		return errors.New("invalid email format")
+	}
+
+	return nil
+}
+
+
+func (ccp *CartCheckoutPayload) Validate() error {
+	if ccp.Items == nil || len(ccp.Items) == 0 {
+		return errors.New("the cart cannot be empty")
+	}
+
+	for _, item := range ccp.Items {
+		if item.ProductID <= 0 {
+			return fmt.Errorf("invalid ProductID: %d; must be positive", item.ProductID)
+		}
+		if item.Quantity <= 0 {
+			return fmt.Errorf("invalid Quantity for ProductID %d: %d; must be positive", item.ProductID, item.Quantity)
+		}
+	}
+
+	return nil
+}
+
+func (cpp *CreateProductPayload) Validate() error {
+	if cpp.Title == "" {
+		return errors.New("the title cannot be empty")
+	}
+	if cpp.Description == "" {
+		return errors.New("the description cannot be empty")
+	}
+	if cpp.Price <= 0 {
+		return fmt.Errorf("invalid Price: %f; must be positive", cpp.Price)
+	}
+	if cpp.Seller == "" {
+		return errors.New("the seller cannot be empty")
+	}
+	if cpp.Quantity < 0 {
+		return fmt.Errorf("invalid Quantity: %d; must be non-negative", cpp.Quantity)
 	}
 
 	return nil

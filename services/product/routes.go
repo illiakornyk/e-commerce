@@ -55,11 +55,19 @@ func (h *Handler) handleCreateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+
 	var payload types.CreateProductPayload
 	if err := utils.ParseJSON(r, &payload); err != nil {
 		utils.WriteError(w, http.StatusBadRequest, err)
 		return
 	}
+
+
+	if err := payload.Validate(); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
 
 	existingProduct, err := h.store.GetProductByTitle(payload.Title)
 	if err == nil && existingProduct != nil {
