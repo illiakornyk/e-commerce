@@ -43,11 +43,12 @@ func (h *Handler) handleCheckout(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// if err := utils.Validate.Struct(cart); err != nil {
-	// 	errors := err.(validator.ValidationErrors)
-	// 	utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid payload: %v", errors))
-	// 	return
-	// }
+
+	if err := cart.Validate(); err != nil {
+		utils.WriteError(w, http.StatusBadRequest, err)
+		return
+	}
+
 
 	productIds, err := getCartItemsIDs(cart.Items)
 	if err != nil {

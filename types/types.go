@@ -2,6 +2,7 @@ package types
 
 import (
 	"errors"
+	"fmt"
 	"regexp"
 	"time"
 )
@@ -138,6 +139,44 @@ func (p *LoginUserPayload) Validate() error {
 	}
 	if !matched {
 		return errors.New("invalid email format")
+	}
+
+	return nil
+}
+
+
+func (ccp *CartCheckoutPayload) Validate() error {
+	if ccp.Items == nil || len(ccp.Items) == 0 {
+		return errors.New("the cart cannot be empty")
+	}
+
+	for _, item := range ccp.Items {
+		if item.ProductID <= 0 {
+			return fmt.Errorf("invalid ProductID: %d; must be positive", item.ProductID)
+		}
+		if item.Quantity <= 0 {
+			return fmt.Errorf("invalid Quantity for ProductID %d: %d; must be positive", item.ProductID, item.Quantity)
+		}
+	}
+
+	return nil
+}
+
+func (cpp *CreateProductPayload) Validate() error {
+	if cpp.Title == "" {
+		return errors.New("the title cannot be empty")
+	}
+	if cpp.Description == "" {
+		return errors.New("the description cannot be empty")
+	}
+	if cpp.Price <= 0 {
+		return fmt.Errorf("invalid Price: %f; must be positive", cpp.Price)
+	}
+	if cpp.Seller == "" {
+		return errors.New("the seller cannot be empty")
+	}
+	if cpp.Quantity < 0 {
+		return fmt.Errorf("invalid Quantity: %d; must be non-negative", cpp.Quantity)
 	}
 
 	return nil
