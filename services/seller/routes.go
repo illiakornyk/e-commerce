@@ -28,7 +28,7 @@ func (h *Handler) handleSellers(w http.ResponseWriter, r *http.Request) {
     if r.URL.Path == "/sellers" {
         switch r.Method {
         case http.MethodGet:
-            // h.handleGetProducts(w, r)
+            h.handleGetSellers(w, r)
         case http.MethodPost:
             h.handleCreateSeller(w, r)
         default:
@@ -114,4 +114,19 @@ func (h *Handler) handleGetSellerByID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, http.StatusOK, seller)
+}
+
+
+func (h *Handler) handleGetSellers(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		utils.WriteError(w, http.StatusMethodNotAllowed, fmt.Errorf("method not allowed"))
+		return
+	}
+	sellers, err := h.store.GetSellers()
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusOK, sellers)
 }
