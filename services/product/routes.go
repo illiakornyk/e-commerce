@@ -44,6 +44,8 @@ func (h *Handler) handleProducts(w http.ResponseWriter, r *http.Request) {
             h.handleGetProductByID(w, r)
         case http.MethodPatch:
             h.handlePatchProduct(w, r)
+		case http.MethodDelete:
+			h.handleDeleteProduct(w, r)
         default:
             utils.WriteError(w, http.StatusMethodNotAllowed, fmt.Errorf("method not allowed"))
         }
@@ -146,7 +148,6 @@ func (h *Handler) handlePatchProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if the product exists by ID before attempting to update
 	existingProduct, err := h.store.GetProductByID(productID)
 	if err != nil {
 		utils.WriteError(w, http.StatusInternalServerError, err)
@@ -165,4 +166,29 @@ func (h *Handler) handlePatchProduct(w http.ResponseWriter, r *http.Request) {
 	}
 
 	utils.WriteJSON(w, http.StatusOK, map[string]string{"status": "product updated"})
+}
+
+
+func (h *Handler) handleDeleteProduct(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodDelete {
+		utils.WriteError(w, http.StatusMethodNotAllowed, fmt.Errorf("method not allowed"))
+		return
+	}
+
+
+	productIDStr := strings.TrimPrefix(r.URL.Path, "/products/")
+	productID, err := strconv.Atoi(productIDStr)
+	if err != nil {
+		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("invalid product ID"))
+		return
+	}
+
+
+	err = h.store.DeleteProduct(productID)
+	if err != nil {
+		utils.WriteError(w, http.StatusInternalServerError, err)
+		return
+	}
+
+	utils.WriteJSON(w, http.StatusCreated, map[string]string{"status": "product deleted"})
 }

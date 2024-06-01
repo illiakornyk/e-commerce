@@ -44,6 +44,7 @@ type ProductStore interface {
 	CreateProduct(CreateProductPayload) error
 	PatchProduct(payload PatchProductPayload, productID int) error
 	UpdateProduct(Product) error
+	DeleteProduct(productID int) error
 }
 
 type Product struct {

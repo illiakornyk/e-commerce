@@ -191,3 +191,13 @@ func scanRowsIntoProduct(rows *sql.Rows) (*types.Product, error) {
 
 	return product, nil
 }
+
+
+func (s *Store) DeleteProduct(productID int) error {
+    _, err := s.db.Exec("DELETE FROM products WHERE id = $1", productID)
+    if err != nil {
+        return err
+    }
+
+    return nil
+}
