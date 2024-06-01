@@ -20,7 +20,7 @@ func NewHandler(store types.UserStore) *Handler {
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("/login", h.handleLogin)
-	mux.HandleFunc("/register", h.handleRegister)
+	// mux.HandleFunc("/register", h.handleRegister)
 }
 
 func (h *Handler) handleLogin(w http.ResponseWriter, r *http.Request) {
@@ -79,11 +79,17 @@ func (h *Handler) handleRegister(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := h.store.GetUserByEmail(payload.Email)
-	if err == nil {
-		utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("user with email %s already exists", payload.Email))
-		return
-	}
+	existingUser, err := h.store.GetUserByEmail(payload.Email)
+    if err != nil {
+        // Handle the error properly; it's an unexpected error
+        utils.WriteError(w, http.StatusInternalServerError, fmt.Errorf("an unexpected error occurred"))
+        return
+    }
+    if existingUser != nil {
+        // If existingUser is not nil, a user with that email already exists
+        utils.WriteError(w, http.StatusBadRequest, fmt.Errorf("user with email %s already exists", payload.Email))
+        return
+    }
 
 	hashedPassword, err := auth.HashPassword(payload.Password)
 	if err != nil {

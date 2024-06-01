@@ -20,7 +20,7 @@ func NewHandler(store types.ProductStore) *Handler {
 
 func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
     mux.HandleFunc("/products", h.handleProducts)
-    mux.HandleFunc("/products/", h.handleProducts) // This will catch all paths under /products/
+    mux.HandleFunc("/products/", h.handleProducts)
 }
 
 func (h *Handler) handleProducts(w http.ResponseWriter, r *http.Request) {
