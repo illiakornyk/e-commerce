@@ -37,6 +37,14 @@ services:
       - db
     depends_on:
       - db
+    entrypoint: >
+      /bin/sh -c "
+      until pg_isready -h db -p ${DB_PORT}; do sleep 1; done;
+      go run ./cmd/migrate/main.go up &&
+      go run ./cmd/initadmin/init_admin.go &&
+      /api ||
+      tail -f /dev/null
+      "
 
 volumes:
   db_data:
